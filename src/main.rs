@@ -1,5 +1,10 @@
 use actix_cors::Cors;
-use actix_web::{get, http::header, middleware, App, HttpServer, Responder};
+use actix_files::Files;
+use actix_multipart::form::tempfile::TempFileConfig;
+use actix_web::{get, http::header, middleware, web, App, HttpServer, Responder};
+
+mod routes;
+use routes::*;
 
 #[get("/")]
 async fn main_route() -> impl Responder {
@@ -17,11 +22,16 @@ async fn main() -> std::io::Result<()> {
 
 	let server = HttpServer::new(move || {
 		App::new()
+			.app_data(TempFileConfig::default().directory("./uploads"))
 			.wrap(
 				Cors::default()
 					.allow_any_origin()
 					.allowed_methods(vec!["POST", "GET", "DELETE"])
-					.allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+					.allowed_headers(vec![
+						header::AUTHORIZATION,
+						header::ACCEPT,
+						header::CONTENT_TYPE,
+					])
 					.allowed_header(header::CONTENT_TYPE)
 					.supports_credentials()
 					.max_age(3600),
@@ -29,6 +39,8 @@ async fn main() -> std::io::Result<()> {
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
 			.service(main_route)
+			.service(web::scope("/file").route("/upload", web::post().to(upload_file::route)))
+			.service(Files::new("/f", "uploads/").show_files_listing())
 	});
 
 	println!("Starting server at http://localhost:{:?}", port);

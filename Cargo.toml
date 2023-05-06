@@ -12,8 +12,11 @@ codegen-units = 1
 
 [dependencies]
 actix-cors = "0.6.4"
+actix-files = "0.6.2"
+actix-multipart = "0.6.0"
 actix-web = "4.3.1"
 dotenv = "0.15.0"
 jsonwebtoken = "8.3.0"
+rs-snowflake = "0.6.0"
 serde = { version = "1.0.160", features = ["derive"] }
 tokio = { version = "1.28.0", features = ["full", "tracing"] }
