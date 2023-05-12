@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
 
 	let server = HttpServer::new(move || {
 		App::new()
-			.app_data(TempFileConfig::default().directory("./uploads"))
+			.app_data(TempFileConfig::default().directory("/uploads"))
 			.wrap(
 				Cors::default()
 					.allow_any_origin()
@@ -40,7 +40,7 @@ async fn main() -> std::io::Result<()> {
 			.wrap(middleware::Logger::default())
 			.service(main_route)
 			.service(web::scope("/file").route("/upload", web::post().to(upload_file::route)))
-			.service(Files::new("/f", "uploads/").show_files_listing())
+			.service(Files::new("/f", "/uploads/").show_files_listing())
 	});
 
 	println!("Starting server at http://localhost:{:?}", port);

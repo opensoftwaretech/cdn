@@ -3,9 +3,9 @@ use std::{ffi::OsStr, path::Path};
 use serde::Serialize;
 
 #[derive(Serialize)]
-pub struct Response<T> {
+pub struct Response<'a, T> {
 	pub status: u16,
-	pub message: String,
+	pub message: &'a str,
 	pub data: Option<T>,
 }
 

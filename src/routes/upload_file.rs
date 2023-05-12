@@ -27,7 +27,7 @@ pub async fn route(
 		let file_ext = get_extension_from_filename(&file_name.as_str()).unwrap();
 		let file_id = id_generator.real_time_generate();
 
-		let path = format!("./uploads/{}.{}", file_id, file_ext);
+		let path = format!("/uploads/{}.{}", file_id, file_ext);
 
 		f.file.persist(&path).unwrap();
 		files.push(FileData {
@@ -38,7 +38,7 @@ pub async fn route(
 
 	Ok(HttpResponse::Ok().json(Response::<Vec<FileData>> {
 		status: 200,
-		message: "Upload success".to_string(),
+		message: "Upload success",
 		data: Some(files),
 	}))
 }
