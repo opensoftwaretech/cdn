@@ -14,6 +14,7 @@ async fn main_route() -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
 	dotenv::dotenv().ok();
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
 	let port = std::env::var("API_PORT")
 		.unwrap_or_else(|_| "8080".to_string())
@@ -43,7 +44,7 @@ async fn main() -> std::io::Result<()> {
 			.service(Files::new("/f", "/uploads/").show_files_listing())
 	});
 
-	println!("Starting server at http://localhost:{:?}", port);
+	log::info!("Starting server at http://localhost:{:?}", port);
 
-	server.bind(("127.0.0.1", port))?.run().await
+	server.bind(("0.0.0.0", port))?.run().await
 }
