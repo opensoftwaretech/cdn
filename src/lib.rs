@@ -2,7 +2,7 @@ use std::{ffi::OsStr, path::Path};
 
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct Response<'a, T> {
 	pub status: u16,
 	pub message: &'a str,

@@ -27,7 +27,9 @@ pub async fn route(
 		let file_ext = get_extension_from_filename(&file_name.as_str()).unwrap();
 		let file_id = id_generator.real_time_generate();
 
-		let path = format!("/uploads/{}.{}", file_id, file_ext);
+		let upload_dir = std::env::var("UPLOADS_DIR").unwrap_or_else(|_| "/tmp/uploads".to_string());
+
+		let path = format!("{}/{}.{}", upload_dir, file_id, file_ext);
 
 		f.file.persist(&path).unwrap();
 		files.push(FileData {
