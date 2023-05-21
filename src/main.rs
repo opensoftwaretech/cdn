@@ -1,28 +1,42 @@
 use actix_cors::Cors;
 use actix_files::Files;
 use actix_multipart::form::tempfile::TempFileConfig;
-use actix_web::{get, http::header, middleware, web, App, HttpServer, Responder};
+use actix_web::{
+	get,
+	http::{header, StatusCode},
+	middleware, web, App, HttpResponse, HttpServer, Responder,
+};
 
 mod routes;
+use cdn::Response;
 use routes::*;
 
 #[get("/")]
 async fn main_route() -> impl Responder {
-	format!("Hello World!")
+	HttpResponse::Ok().json(Response::<()> {
+		message: "Hello, world!",
+		status: StatusCode::OK.as_u16(),
+		..Default::default()
+	})
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
 	dotenv::dotenv().ok();
+	env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
 	let port = std::env::var("API_PORT")
 		.unwrap_or_else(|_| "8080".to_string())
 		.parse()
 		.expect("API_PORT must be a number");
 
+	let uploads_dir = std::env::var("UPLOADS_DIR").unwrap_or_else(|_| "/tmp/uploads".to_string());
+
+	log::info!("Uploads dir: {:?}", uploads_dir);
+
 	let server = HttpServer::new(move || {
 		App::new()
-			.app_data(TempFileConfig::default().directory("./uploads"))
+			.app_data(TempFileConfig::default().directory(&uploads_dir))
 			.wrap(
 				Cors::default()
 					.allow_any_origin()
@@ -40,10 +54,10 @@ async fn main() -> std::io::Result<()> {
 			.wrap(middleware::Logger::default())
 			.service(main_route)
 			.service(web::scope("/file").route("/upload", web::post().to(upload_file::route)))
-			.service(Files::new("/f", "uploads/").show_files_listing())
+			.service(Files::new("/f", &uploads_dir).show_files_listing())
 	});
 
-	println!("Starting server at http://localhost:{:?}", port);
+	log::info!("Starting server at http://localhost:{:?}", port);
 
-	server.bind(("127.0.0.1", port))?.run().await
+	server.bind(("0.0.0.0", port))?.run().await
 }
