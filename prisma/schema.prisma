@@ -1,0 +1,23 @@
+generator client {
+    provider = "cargo prisma"
+    output   = "../src/prisma.rs"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model File {
+    id          BigInt   @id
+    /// Path where the file is stored
+    path        String   @unique
+    /// Size of the file in bytes
+    size        Int
+    /// Content type of the file
+    contentType String   @map("content_type")
+    /// Date when the file was created
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    @@map("Files")
+}

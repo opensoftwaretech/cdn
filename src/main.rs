@@ -1,5 +1,4 @@
 use actix_cors::Cors;
-use actix_files::Files;
 use actix_multipart::form::tempfile::TempFileConfig;
 use actix_web::{
 	get,
@@ -7,6 +6,8 @@ use actix_web::{
 	middleware, web, App, HttpResponse, HttpServer, Responder,
 };
 
+#[cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
+mod prisma;
 mod routes;
 use cdn::Response;
 use routes::*;
@@ -32,10 +33,13 @@ async fn main() -> std::io::Result<()> {
 
 	let uploads_dir = std::env::var("UPLOADS_DIR").unwrap_or_else(|_| "/tmp/uploads".to_string());
 
+	let db_client = web::Data::new(prisma::PrismaClient::_builder().build().await.unwrap());
+
 	log::info!("Uploads dir: {:?}", uploads_dir);
 
 	let server = HttpServer::new(move || {
 		App::new()
+			.app_data(db_client.clone())
 			.app_data(TempFileConfig::default().directory(&uploads_dir))
 			.wrap(
 				Cors::default()
@@ -53,8 +57,14 @@ async fn main() -> std::io::Result<()> {
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
 			.service(main_route)
-			.service(web::scope("/file").route("/upload", web::post().to(upload_file::route)))
-			.service(Files::new("/f", &uploads_dir).show_files_listing())
+			.service(
+				web::scope("/file") //
+					.route("/upload", web::post().to(upload_file::route)),
+			)
+			.service(
+				web::scope("/f") //
+					.route("/{id}", web::get().to(get_file::route)),
+			)
 	});
 
 	log::info!("Starting server at http://localhost:{:?}", port);
