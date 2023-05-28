@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build Prisma
-      run: cargo prisma build
+      run: cargo prisma generate
     - name: Build
       run: cargo build --verbose
     - name: Run tests
