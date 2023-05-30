@@ -26,20 +26,36 @@ async fn main() -> std::io::Result<()> {
 	dotenv::dotenv().ok();
 	env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
+	let uploads_dir = std::env::var("UPLOADS_DIR").unwrap_or_else(|_| "/tmp/uploads".to_string());
 	let port = std::env::var("API_PORT")
 		.unwrap_or_else(|_| "8080".to_string())
 		.parse()
 		.expect("API_PORT must be a number");
+	let redis_url =
+		std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
 
-	let uploads_dir = std::env::var("UPLOADS_DIR").unwrap_or_else(|_| "/tmp/uploads".to_string());
+	let db_client = match prisma::PrismaClient::_builder().build().await {
+		Ok(client) => web::Data::new(client),
+		Err(e) => {
+			log::error!("Failed to connect to database: {}", e);
+			std::process::exit(1);
+		}
+	};
 
-	let db_client = web::Data::new(prisma::PrismaClient::_builder().build().await.unwrap());
+	let redis = match redis::Client::open(redis_url) {
+		Ok(client) => web::Data::new(client),
+		Err(e) => {
+			log::error!("Failed to connect to redis: {}", e);
+			std::process::exit(1);
+		}
+	};
 
 	log::info!("Uploads dir: {:?}", uploads_dir);
 
 	let server = HttpServer::new(move || {
 		App::new()
 			.app_data(db_client.clone())
+			.app_data(redis.clone())
 			.app_data(TempFileConfig::default().directory(&uploads_dir))
 			.wrap(
 				Cors::default()

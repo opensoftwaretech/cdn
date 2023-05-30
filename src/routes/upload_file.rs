@@ -1,6 +1,9 @@
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
 use actix_web::{web, Error, HttpResponse, Responder};
-use cdn::{get_extension_from_filename, Response};
+use cdn::{
+	get_extension_from_filename, get_mime_type, get_redis_conn, CachedFile, Response, EXPIRE_TIME,
+};
+use redis::AsyncCommands;
 use serde::Serialize;
 use snowflake::SnowflakeIdGenerator;
 
@@ -23,10 +26,12 @@ pub struct FileData {
 
 pub async fn route(
 	MultipartForm(form): MultipartForm<UploadForm>,
+	redis: web::Data<redis::Client>,
 	client: web::Data<prisma::PrismaClient>,
 ) -> Result<impl Responder, Error> {
 	let mut id_generator = SnowflakeIdGenerator::new(1, 1);
 	let mut files: Vec<FileData> = Vec::new();
+	let mut conn = get_redis_conn(redis.get_ref().clone()).await;
 
 	for f in form.files {
 		let file_name = f.file_name.clone().unwrap();
@@ -42,6 +47,18 @@ pub async fn route(
 		log::debug!("Moving file from {} to {}", path, temp_file_path.display());
 		match std::fs::rename(temp_file_path, &path) {
 			Ok(_) => {
+				// cache path and content type in redis
+				conn.set_ex::<String, CachedFile, ()>(
+					file_id.to_string(),
+					CachedFile {
+						path: path.clone(),
+						content_type: get_mime_type(path.clone()),
+					},
+					EXPIRE_TIME,
+				)
+				.await
+				.unwrap();
+
 				files.push(FileData {
 					id: file_id,
 					ext: file_ext.to_string(),
@@ -61,15 +78,11 @@ pub async fn route(
 			files
 				.iter()
 				.map(|file| {
-					let kind = infer::get_from_path(file.path.clone())
-						.expect("file read successfully")
-						.expect("file type is known");
-
 					prisma::file::create_unchecked(
 						file.id,
 						file.path.clone(),
 						file.size,
-						kind.mime_type().to_string(),
+						get_mime_type(file.path.clone()),
 						vec![],
 					)
 				})
