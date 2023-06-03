@@ -1,0 +1,13 @@
+name: Pipeline
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    uses: ectobit/reusable-workflows/.github/workflows/rust-check.yaml@main

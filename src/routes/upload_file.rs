@@ -1,5 +1,5 @@
 use actix_multipart::form::{tempfile::TempFile, MultipartForm};
-use actix_web::{web, Error, HttpResponse, Responder};
+use actix_web::{http::StatusCode, web, HttpResponse};
 use cdn::{
 	get_extension_from_filename, get_mime_type, get_redis_conn, CachedFile, Response, EXPIRE_TIME,
 };
@@ -7,7 +7,7 @@ use redis::AsyncCommands;
 use serde::Serialize;
 use snowflake::SnowflakeIdGenerator;
 
-use crate::prisma;
+use crate::{middlewares::auth::AuthorizationService, prisma};
 
 #[derive(Debug, MultipartForm)]
 pub struct UploadForm {
@@ -24,11 +24,13 @@ pub struct FileData {
 	size: i32,
 }
 
+#[actix_web::post("/file/upload")]
 pub async fn route(
+	_: AuthorizationService, // middleware
 	MultipartForm(form): MultipartForm<UploadForm>,
 	redis: web::Data<redis::Client>,
 	client: web::Data<prisma::PrismaClient>,
-) -> Result<impl Responder, Error> {
+) -> HttpResponse {
 	let mut id_generator = SnowflakeIdGenerator::new(1, 1);
 	let mut files: Vec<FileData> = Vec::new();
 	let mut conn = get_redis_conn(redis.get_ref().clone()).await;
@@ -91,9 +93,9 @@ pub async fn route(
 		.exec()
 		.await;
 
-	Ok(HttpResponse::Ok().json(Response::<Vec<FileData>> {
-		status: 200,
+	HttpResponse::Created().json(Response::<Vec<FileData>> {
+		status: StatusCode::CREATED.as_u16(),
 		message: "Upload success",
 		data: Some(files),
-	}))
+	})
 }

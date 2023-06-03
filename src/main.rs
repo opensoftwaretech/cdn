@@ -6,11 +6,11 @@ use actix_web::{
 	middleware, web, App, HttpResponse, HttpServer, Responder,
 };
 
+mod middlewares;
 #[cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
 mod prisma;
 mod routes;
 use cdn::Response;
-use routes::*;
 
 #[get("/")]
 async fn main_route() -> impl Responder {
@@ -73,14 +73,7 @@ async fn main() -> std::io::Result<()> {
 			.wrap(middleware::Compress::default())
 			.wrap(middleware::Logger::default())
 			.service(main_route)
-			.service(
-				web::scope("/file") //
-					.route("/upload", web::post().to(upload_file::route)),
-			)
-			.service(
-				web::scope("/f") //
-					.route("/{id}", web::get().to(get_file::route)),
-			)
+			.configure(routes::init_routes)
 	});
 
 	log::info!("Starting server at http://localhost:{:?}", port);
