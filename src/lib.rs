@@ -28,13 +28,13 @@ impl CachedFile {
 }
 
 pub async fn get_redis_conn(redis: redis::Client) -> redis::aio::Connection {
-	return match redis.get_async_connection().await {
+	match redis.get_async_connection().await {
 		Ok(conn) => conn,
 		Err(err) => {
 			log::error!("Error connecting to redis: {}", err);
 			std::process::exit(1);
 		}
-	};
+	}
 }
 
 pub fn get_mime_type(path: String) -> String {
