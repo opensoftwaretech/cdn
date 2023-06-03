@@ -8,7 +8,7 @@ default-run = "cdn"
 resolver = "2"
 members = ["prisma-cli"]
 
-[profilel.release]
+[profile.release]
 opt-level = "s"
 lto = true
 codegen-units = 1

@@ -38,7 +38,7 @@ pub async fn route(
 	for f in form.files {
 		let file_name = f.file_name.clone().unwrap();
 		let file_size = f.file.as_file().metadata().unwrap().len();
-		let file_ext = get_extension_from_filename(&file_name.as_str()).unwrap();
+		let file_ext = get_extension_from_filename(file_name.as_str()).unwrap();
 		let file_id = id_generator.real_time_generate();
 
 		let upload_dir =

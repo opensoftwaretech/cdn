@@ -8,6 +8,8 @@ use actix_web::{
 
 mod middlewares;
 #[cfg_attr(debug_assertions, allow(dead_code, unused_imports))]
+#[rustfmt::skip]
+#[allow(clippy::all)]
 mod prisma;
 mod routes;
 use cdn::Response;
