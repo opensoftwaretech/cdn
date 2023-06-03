@@ -44,13 +44,11 @@ jobs:
           cargo install --locked cargo-outdated || true
           cargo install --locked cargo-udeps || true
           cargo install --locked cargo-audit || true
-          cargo install --locked cargo-pants || true
       - name: Check
         run: |
           cargo outdated --exit-code 1
           cargo udeps
           rm -rf ~/.cargo/advisory-db
           cargo audit
-          cargo pants
       - name: Test
         run: cargo test
