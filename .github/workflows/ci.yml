@@ -4,12 +4,6 @@ on:
   push:
   pull_request:
   workflow_dispatch:
-  workflow_call:
-    inputs:
-      rust-version:
-        type: string
-        required: false
-        default: nightly
 
 env:
   CARGO_TERM_COLOR: always
@@ -24,7 +18,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ inputs.rust-version }}
+          toolchain: nightly
           override: true
           components: rustfmt, clippy
       - name: Set up cargo cache
