@@ -18,7 +18,7 @@ codegen-units = 1
 
 [dependencies]
 actix-cors = "0.6.4"
-actix-multipart = "0.6.0"
+actix-multipart = "0.6.1"
 actix-web = "4.3.1"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
