@@ -33,7 +33,7 @@ prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust
     "postgresql",
     "migrations",
 ] }
-redis = { version = "0.23.0", default-features = false, features = [
+redis = { version = "0.27.0", default-features = false, features = [
     "tokio-comp",
 ] }
 redis-macros = "0.1.1"
