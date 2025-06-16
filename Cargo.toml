@@ -17,5 +17,5 @@ sqlx = { version = "0.8.3", features = ["chrono", "postgres", "runtime-tokio"] }
 
 # Server
 actix-web = "4.10.2"
-flexi_logger = "0.29.8"
+flexi_logger = "0.31.0"
 actix_error_proc = "1.1.4"
