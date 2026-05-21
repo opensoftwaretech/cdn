@@ -13,7 +13,7 @@ eserde = { version = "0.1.2", features = ["json"] }
 serde = "1.0.219"
 
 # Database
-sqlx = { version = "0.8.3", features = ["chrono", "postgres", "runtime-tokio"] }
+sqlx = { version = "0.9.0", features = ["chrono", "postgres", "runtime-tokio"] }
 
 # Server
 actix-web = "4.10.2"
